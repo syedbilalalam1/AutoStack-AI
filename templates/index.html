@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolverGenie Bot Control Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .output-container {
+            background-color: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+        .output-line {
+            margin: 0;
+            padding: 2px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .btn-control {
+            min-width: 120px;
+            border-radius: 25px;
+            font-weight: 500;
+        }
+        .sites-textarea {
+            height: 200px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-4 text-center mb-4">
+                    <i class="fas fa-robot text-primary"></i> SolverGenie Bot Control Panel
+                </h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Bot Controls -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Bot Controls</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <button id="startBtn" class="btn btn-success btn-control">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button id="stopBtn" class="btn btn-danger btn-control">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            Status: <span id="statusBadge" class="badge status-badge bg-secondary">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Stack Exchange Sites</h5>
+                        <textarea id="sitesTextarea" class="form-control sites-textarea mb-3"></textarea>
+                        <button id="saveSitesBtn" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Save Sites
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot Output -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Bot Output</h5>
+                        <div id="output" class="output-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateStatus() {
+            $.get('/status', function(data) {
+                // Update status badge
+                const statusMap = {
+                    'running': 'bg-success',
+                    'stopped': 'bg-secondary',
+                    'error': 'bg-danger'
+                };
+                $('#statusBadge')
+                    .text(data.status.charAt(0).toUpperCase() + data.status.slice(1))
+                    .removeClass('bg-success bg-secondary bg-danger')
+                    .addClass(statusMap[data.status] || 'bg-secondary');
+
+                // Update output
+                const outputDiv = $('#output');
+                outputDiv.html('');
+                data.output.forEach(line => {
+                    outputDiv.append(`<pre class="output-line">${line}</pre>`);
+                });
+                outputDiv.scrollTop(outputDiv[0].scrollHeight);
+            });
+        }
+
+        function loadSites() {
+            $.get('/sites', function(data) {
+                $('#sitesTextarea').val(data.sites);
+            });
+        }
+
+        $(document).ready(function() {
+            // Initial load
+            updateStatus();
+            loadSites();
+
+            // Start button
+            $('#startBtn').click(function() {
+                $.post('/start', function() {
+                    updateStatus();
+                });
+            });
+
+            // Stop button
+            $('#stopBtn').click(function() {
+                $.post('/stop', function() {
+                    updateStatus();
+                });
+            });
+
+            // Save sites button
+            $('#saveSitesBtn').click(function() {
+                const sites = $('#sitesTextarea').val();
+                $.post('/sites', { sites: sites }, function() {
+                    alert('Sites updated successfully!');
+                });
+            });
+
+            // Regular status updates
+            setInterval(updateStatus, 2000);
+        });
+    </script>
+</body>
+</html> 

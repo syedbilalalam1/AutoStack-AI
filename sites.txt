@@ -1,0 +1,9 @@
+math
+physics
+stats
+chemistry
+mathematica
+academia
+ai
+datascience
+stackoverflow 
