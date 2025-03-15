@@ -1,4 +1,4 @@
-# SolverGenie Stack Exchange Bot
+# Stack Exchange Bot
 
 A web-based control panel for managing the SolverGenie Stack Exchange bot that automatically answers questions across various Stack Exchange sites.
 
